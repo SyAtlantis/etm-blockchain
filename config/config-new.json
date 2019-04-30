@@ -1,0 +1,79 @@
+{
+  "port": 6600,
+  "address": "127.0.0.1",
+  "publicIp": "127.0.0.1",
+  "logLevel": "debug",
+  "magic": "e81b8a0c",
+  "api": {
+    "access": {
+      "whiteList": []
+    }
+  },
+  "peers": {
+    "list": [
+
+    ],
+    "blackList": [],
+    "options": {
+      "timeout": 4000,
+      "pingTimeout":500
+    }
+  },
+  "forging": {
+    "secret": [
+      "assault goose rice jaguar mosquito slight benefit lounge holiday delay top main",
+      "behave admit acoustic juice exile renew donate foster mistake resemble ceiling van",
+      "visa tragic apart rabbit cherry detect often shoe collect fuel quantum castle",
+      "ensure adult patient eight monster face wealth similar author voice rare pizza",
+      "soul rhythm pupil advice crush picnic dress file tip purchase anger blush",
+      "six core cruel celery defense box remind vacant right noise elder face",
+      "trouble old ostrich cluster stock celery paddle torch clinic cash cram orphan",
+      "post globe lecture bitter corn kingdom there boost deal finger strike destroy",
+      "online erase bubble misery avocado drop labor spawn wet insect damp analyst",
+      "purse occur genuine peanut jaguar forward arrest prize caution uphold assist diagram",
+      "flame can pink mistake seat poem clock proud arrange risk mandate govern",
+      "reunion intact random pole approve clever rotate thank hint light cloth assist",
+      "tuna hero spirit spot maximum come choose brother then wrist session theme",
+      "feel deposit invite shy city sponsor beach force invest top hobby turtle",
+      "series spend congress satisfy blame chase pistol mercy target dentist cram garbage",
+      "beef thought absorb assist taste gate special fine length smile beef interest",
+      "hold laugh void absorb punch early stand lab apology budget royal reopen",
+      "chapter prepare lift awkward puppy stomach wagon muffin shield obey control bleak",
+      "easy business decline wet typical ivory canvas genius local rich soldier debris",
+      "ball delay enjoy true dog comic client unknown machine coyote smart trash",
+      "raise bridge train choose horse style obtain crop during else logic minute",
+      "soul brave process water giggle boost breeze uphold win recipe aerobic chronic",
+      "corn dish lens lady alarm hello cup bulb tone motion half corn",
+      "admit genius sense cup zebra since stuff east butter giggle hotel group",
+      "total off exchange vague merry arrest proof melt rare father robot enforce",
+      "double student arrest mind drill grass match throw twelve glance rough prepare",
+      "sight mushroom puppy motion marble puzzle helmet mad special judge clarify custom",
+      "forward speed rule brush garlic use acoustic tank home wedding bring drill",
+      "spot repeat champion note leopard false asthma sauce impulse extend actor estate",
+      "punch remember tragic gadget barely state choice tree amount robust critic surround",
+      "purpose shop story almost favorite pen tiny tank flight talent ribbon dizzy"
+    ],
+    "access": {
+      "whiteList": [
+        "127.0.0.1"
+      ]
+    }
+  },
+  "loading": {
+    "verifyOnLoading": false,
+    "loadPerIteration": 5000
+  },
+  "ssl": {
+    "enabled": false,
+    "options": {
+      "port": 443,
+      "address": "0.0.0.0",
+      "key": "./ssl/server.key",
+      "cert": "./ssl/server.crt"
+    }
+  },
+  "dapp": {
+    "masterpassword": "ytfACAMegjrK",
+    "params": {}
+  }
+}

@@ -1,6 +1,6 @@
 class Test {
-    async init() {
-        library.logger.info("init in test");
+    constructor() {
+        library.logger.info("constructor in TTTTTTTTTTTTest");
     }
 }
 
