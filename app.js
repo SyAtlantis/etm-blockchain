@@ -11,7 +11,7 @@ const KoaRouter = require("koa-router");
 const Logger = require("./src/utils/logger");
 const Bus = require("./src/utils/bus");
 
-const modules = new Map([
+const _modules = new Map([
     ["blocks", "./src/modules/blocks"],
     ["accounts", "./src/modules/accounts"],
     ["transactions", "./src/modules/transactions"],
@@ -20,123 +20,87 @@ const modules = new Map([
 
 
 let _init = async opt => {
-    // logger
-    // let logger = new Logger({
-    //     filename: path.resolve(__dirname, "logs", "koa.log"),
-    //     echo: program.deamon ? null : "debug",
-    //     errorLevel: "debug"
-    // });
-    // library.logger = logger;
-    // library.logger.info(`【App init logger】 logger is ok.`);
-
-    // // modules
-    // library.modules = [];
-    // for (let [name, module] of modules) {
-    //     try {
-    //         const ClzModule = require(module);
-    //         const inst = new ClzModule();
-    //         // inst && await inst.init(opt);
-    //         library.modules.push(inst);
-    //         library.logger.info(`【App init modules】 module(${name}) inited`);
-    //     } catch (error) {
-    //         library.logger.error(`【App init modules】 module(${name}) init failure, `, error);
-    //     }
-    // }
-
-    // // event bus
-    // let bus = new Bus(library.modules);
-    // library.bus = bus;
-    // library.logger.info(`【App init event】event bus is ok.`);
 }
 
 let _setup = async opt => {
     let app = new Koa();
 
-
     async.auto({
-        config: () => {
-            console.log("config");
-        },
-        logger: () => {
-            console.log("logger");
+        logger: (cb) => {
             let logger = new Logger({
                 filename: path.resolve(__dirname, "logs", "koa.log"),
                 echo: program.deamon ? null : "debug",
                 errorLevel: "debug"
             });
-            library.logger = logger;
-            library.logger.info(`【App init logger】 logger is ok.`);
+            library.logger = logger; // 绑定到全局
+            library.logger.info(`【App setup logger】 logger is ok.`);
+
+            cb(null, logger);
         },
-        modules: ["config", (cb) => {
-            console.log("modules");
-            library.modules = [];
-            for (let [name, module] of modules) {
+        modules: ["logger", (res, cb) => {
+            let modules = [];
+            for (let [name, module] of _modules) {
                 try {
                     const ClzModule = require(module);
                     const inst = new ClzModule();
-                    // inst && await inst.init(opt);
-                    library.modules.push(inst);
-                    library.logger.info(`【App init modules】 module(${name}) inited`);
+                    modules.push(inst);
+                    library.logger.info(`【App setup modules】 module(${name}) inited`);
                 } catch (error) {
-                    library.logger.error(`【App init modules】 module(${name}) init failure, `, error);
+                    library.logger.error(`【App setup modules】 module(${name}) init failure, `, error);
                 }
             }
-        }],
-        bus: ["config", "modules", () => {
-            console.log("bus");
-            let bus = new Bus(library.modules);
-            library.bus = bus;
-            library.logger.info(`【App init event】event bus is ok.`);
-        }],
-        router: ["config", () => {
-            console.log("router");
-            const apiDir = path.resolve(__dirname, "src", "api");
-            const APIs = fs.readdirSync(apiDir);
-            const router = new KoaRouter();
-            APIs.forEach(el => {
-                if (el.endsWith(".js")) {
-                    const APIModule = require(path.resolve(apiDir, el));
-                    APIModule(router);
-                }
-            });
-            app.use(router.routes());
-        }],
-        server: ["config", () => {
-            console.log("server");
-            const server = app.listen(opt.port, opt.host, () => {
-                library.logger.info(`【Server】 Listening on ${opt.host}:${opt.port}.`);
-            });
+            library.modules = modules; // 绑定到全局
 
-            const socketio = SocketIO(server);
+            cb(null, modules);
         }],
-        socket: () => {
-            console.log("socket");
+        bus: ["logger", "modules", (res, cb) => {
+            let bus = new Bus(res.modules);
+            library.bus = bus; // 绑定到全局
+            library.logger.info(`【App setup bus】event bus is ok.`);
 
-        },
-    }, () => {
-        // library.logger.info('Send event message ========> 【onBind】');
-        // setImmediate(() => library.bus.message('bind'));
+            cb(null, bus);
+        }],
+        server: ["logger", (res, cb) => {
+            let server = app.listen(opt.port, opt.host, () => {
+                library.logger.info(`【App setup server】 Server Listening on ${opt.host}:${opt.port}.`);
+                cb(null, server);
+            });
+        }],
+        socket: ["logger", "server", (res, cb) => {
+            const socketio = SocketIO(res.server);
+
+            cb(null);
+        }],
+        router: ["logger", "server", (res, cb) => {
+            try {
+                const apiDir = path.resolve(__dirname, "src", "api");
+                const APIs = fs.readdirSync(apiDir);
+                const router = new KoaRouter();
+                APIs.forEach(el => {
+                    if (el.endsWith(".js")) {
+                        const APIModule = require(path.resolve(apiDir, el));
+                        APIModule(router);
+                    }
+                });
+                app.use(router.routes());
+
+                library.logger.info(`【App setup router】 router is ok.`);
+            } catch (error) {
+                library.logger.error(`【App setup router】 Error:${error} `);
+            }
+
+            cb(null);
+        }],
+        // end: ["logger", "server", (res, cb) => {
+        // }]
+    }, (err, res) => {
+        if (err) {
+            library.logger.error(`【App setup error】 ${err}`);
+        }
+
+        library.logger.info('Send event message ========> 【onBind】');
+        setImmediate(() => library.bus.message('bind'));
     });
-
-    // router
-    // const apiDir = path.resolve(__dirname, "src", "api");
-    // const APIs = fs.readdirSync(apiDir);
-    // const router = new KoaRouter();
-    // APIs.forEach(el => {
-    //     if (el.endsWith(".js")) {
-    //         const APIModule = require(path.resolve(apiDir, el));
-    //         APIModule(router);
-    //     }
-    // });
-    // app.use(router.routes());
-
-    // // server listening
-    // const server = app.listen(opt.port, opt.host, () => {
-    //     library.logger.info(`【Server】 Listening on ${opt.host}:${opt.port}.`);
-    // });
-
-    // // socket
-    // const socketio = SocketIO(server);
 }
 
 function main() {
@@ -156,9 +120,6 @@ function main() {
             return _setup(opt);
         })
         .then(() => {
-            // library.logger.info('Send event message ========> 【onBind】');
-            // setImmediate(() => library.bus.message('bind'));
-
             process.emit("app-ready");
         })
         .then(() => {
