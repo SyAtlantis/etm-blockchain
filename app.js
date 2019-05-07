@@ -10,16 +10,19 @@ const KoaRouter = require("koa-router");
 
 const Logger = require("./src/utils/logger");
 const Bus = require("./src/utils/bus");
+const DBMgr = require("./src/utils/dbMgr");
 
 const _modules = new Map([
-    ["blocks", "./src/modules/blocks"],
-    ["accounts", "./src/modules/accounts"],
-    ["transactions", "./src/modules/transactions"],
+    ["blocks", "./src/modules/blocks/blocks"],
+    ["accounts", "./src/modules/accounts/accounts"],
+    ["transactions", "./src/modules/transactions/transactions"],
+    ["system", "./src/modules/system/system"],
     ["test", "./src/modules/test"],
 ]);
 
 
 let _init = async opt => {
+
 }
 
 let _setup = async opt => {
@@ -28,7 +31,7 @@ let _setup = async opt => {
     async.auto({
         logger: (cb) => {
             let logger = new Logger({
-                filename: path.resolve(__dirname, "logs", "koa.log"),
+                filename: path.resolve(__dirname, "logs", "etm.log"),
                 echo: program.deamon ? null : "debug",
                 errorLevel: "debug"
             });
@@ -37,13 +40,26 @@ let _setup = async opt => {
 
             cb(null, logger);
         },
+        db: ["logger", (res, cb) => {
+            let db = new DBMgr();
+            // db.connect((err) => {
+            //     if (err) {
+            //         return cb(err);
+            //     }
+
+            library.db = db; // 绑定到全局
+            library.logger.info(`【App setup db】 db connect ok!`);
+
+            cb(null, db);
+            // });
+        }],
         modules: ["logger", (res, cb) => {
-            let modules = [];
+            let modules = {};
             for (let [name, module] of _modules) {
                 try {
                     const ClzModule = require(module);
                     const inst = new ClzModule();
-                    modules.push(inst);
+                    modules[name] = inst;
                     library.logger.info(`【App setup modules】 module(${name}) inited`);
                 } catch (error) {
                     library.logger.error(`【App setup modules】 module(${name}) init failure, `, error);
@@ -69,7 +85,7 @@ let _setup = async opt => {
         socket: ["logger", "server", (res, cb) => {
             const socketio = SocketIO(res.server);
 
-            cb(null);
+            cb(null, socketio);
         }],
         router: ["logger", "server", (res, cb) => {
             try {
@@ -89,13 +105,14 @@ let _setup = async opt => {
                 library.logger.error(`【App setup router】 Error:${error} `);
             }
 
-            cb(null);
+            cb();
         }],
         // end: ["logger", "server", (res, cb) => {
         // }]
     }, (err, res) => {
         if (err) {
-            library.logger.error(`【App setup error】 ${err}`);
+            library.logger.fatal(`【App setup error】 ${err}`);
+            process.exit();
         }
 
         library.logger.info('Send event message ========> 【onBind】');
@@ -116,9 +133,6 @@ function main() {
     opt.port = Number(program.port);
 
     _init(opt)
-        .then(() => {
-            return _setup(opt);
-        })
         .then(() => {
             process.emit("app-ready");
         })
@@ -160,6 +174,9 @@ function main() {
             process.once('exit', () => {
                 library.logger.info('process exited');
             });
+        })
+        .then(() => {
+            return _setup(opt);
         })
         .catch(() => {
             library.logger.error("[App] start error:", error);

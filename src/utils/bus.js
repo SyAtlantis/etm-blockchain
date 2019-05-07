@@ -2,7 +2,7 @@
 const EventEmitter = require('events');
 const changeCase = require('change-case');
 
-let _modules = [];
+let _modules = {};
 
 class Bus extends EventEmitter {
     constructor(modules) {
@@ -15,13 +15,14 @@ class Bus extends EventEmitter {
 class BusEvent extends EventEmitter {
 
     message(topic, ...restArgs) {
-        for (let module of _modules) {
+        for (let moduleName in _modules) {
             let eventName = 'on' + changeCase.pascalCase(topic);
-            if (typeof (module[eventName]) === 'function') {
-                module[eventName].apply(module[eventName], [...restArgs]);
+            let eventFn = _modules[moduleName][eventName];
+            if (typeof (eventFn) === 'function') {
+                eventFn.apply(eventFn, [...restArgs]);
             }
         }
-        this.emit(topic, ...restArgs)
+        this.emit(topic, ...restArgs);
     }
 
 }
