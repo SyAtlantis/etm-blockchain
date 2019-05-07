@@ -1,15 +1,15 @@
 {
-  "name": "koa-frame",
+  "name": "etm-blockchain",
   "version": "1.0.0",
-  "description": "koa frame",
+  "description": "etm blockchain",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "koa"
+    "etm entanmo"
   ],
-  "author": "sy",
+  "author": "entanmo",
   "license": "ISC",
   "dependencies": {
     "ajv": "^6.10.0",

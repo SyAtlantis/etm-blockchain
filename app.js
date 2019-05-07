@@ -13,17 +13,60 @@ const Bus = require("./src/utils/bus");
 const DBMgr = require("./src/utils/dbMgr");
 
 const _modules = new Map([
-    ["blocks", "./src/modules/blocks/blocks"],
-    ["accounts", "./src/modules/accounts/accounts"],
-    ["transactions", "./src/modules/transactions/transactions"],
-    ["system", "./src/modules/system/system"],
+    ["blocks", "./src/modules/blocks"],
+    ["accounts", "./src/modules/accounts"],
+    ["transactions", "./src/modules/transactions"],
+    ["system", "./src/modules/system"],
     ["test", "./src/modules/test"],
 ]);
 
 
 let _init = async opt => {
 
-}
+};
+
+let _ready = async () => {
+    process.emit("app-ready");
+
+    process.on("error", error => {
+        library.logger.error(`[Application] error: ${error.toString()}`);
+    });
+
+    process.on("uncaughtException", error => {
+        library.logger.error(`[UncaughtException] ${error.toString()}`);
+        process.emit("app-close");
+    });
+    process.on("unhandledRejection", (reason, promise) => {
+        void promise;
+        library.logger.error(`[UnhandledRejection] ${reason}`);
+    });
+    process.on("rejectionHandled", promise => {
+        void promise;
+        library.logger.error("[RejectionHandled] happended.");
+    });
+
+    process.on("SIGTERM", signal => {
+        void signal;
+        process.emit("app-close");
+    });
+    process.on("SIGINT", signal => {
+        void signal;
+        process.emit("app-close");
+    });
+
+    process.on("app-close", () => {
+        library.logger.info('Cleaning up...');
+
+        //TODO: modules clean up and db close
+        library.logger.info('Cleaned up successfully');
+
+        process.exit();
+    });
+
+    process.once('exit', () => {
+        library.logger.info('process exited');
+    });
+};
 
 let _setup = async opt => {
     let app = new Koa();
@@ -32,8 +75,8 @@ let _setup = async opt => {
         logger: (cb) => {
             let logger = new Logger({
                 filename: path.resolve(__dirname, "logs", "etm.log"),
-                echo: program.deamon ? null : "debug",
-                errorLevel: "debug"
+                echo: program.deamon ? null : "trace",
+                errorLevel: "trace"
             });
             library.logger = logger; // 绑定到全局
             library.logger.info(`【App setup logger】 logger is ok.`);
@@ -42,16 +85,16 @@ let _setup = async opt => {
         },
         db: ["logger", (res, cb) => {
             let db = new DBMgr();
-            // db.connect((err) => {
-            //     if (err) {
-            //         return cb(err);
-            //     }
+            db.connect((err) => {
+                if (err) {
+                    return cb(err);
+                }
 
-            library.db = db; // 绑定到全局
-            library.logger.info(`【App setup db】 db connect ok!`);
+                library.db = db; // 绑定到全局
+                library.logger.info(`【App setup db】 db connect ok!`);
 
-            cb(null, db);
-            // });
+                cb(null, db);
+            });
         }],
         modules: ["logger", (res, cb) => {
             let modules = {};
@@ -112,15 +155,15 @@ let _setup = async opt => {
     }, (err, res) => {
         if (err) {
             library.logger.fatal(`【App setup error】 ${err}`);
-            process.exit();
+            process.emit("app-close");
         }
 
-        library.logger.info('Send event message ========> 【onBind】');
+        library.logger.log('Send event message ========> 【onBind】');
         setImmediate(() => library.bus.message('bind'));
     });
-}
+};
 
-function main() {
+(() => {
     global.library = {};
 
     program.version("1.0.0")
@@ -134,53 +177,13 @@ function main() {
 
     _init(opt)
         .then(() => {
-            process.emit("app-ready");
-        })
-        .then(() => {
-            process.on("error", error => {
-                library.logger.error(`[Application] error: ${error.toString()}`);
-            });
-
-            process.on("uncaughtException", error => {
-                library.logger.error(`[UncaughtException] ${error.toString()}`);
-                process.emit("app-cleanup");
-            });
-            process.on("unhandledRejection", (reason, promise) => {
-                void promise;
-                library.logger.error(`[UnhandledRejection] ${reason}`);
-            });
-            process.on("rejectionHandled", promise => {
-                void promise;
-                library.logger.error("[RejectionHandled] happended.");
-            });
-
-            process.on("SIGTERM", signal => {
-                void signal;
-                process.emit("app-cleanup");
-            });
-            process.on("SIGINT", signal => {
-                void signal;
-                process.emit("app-cleanup");
-            });
-            process.on("app-cleanup", () => {
-                library.logger.info('Cleaning up...');
-
-                //TODO: modules clean up
-                library.logger.info('Cleaned up successfully');
-
-                process.exit();
-            });
-
-            process.once('exit', () => {
-                library.logger.info('process exited');
-            });
+            return _ready();
         })
         .then(() => {
             return _setup(opt);
         })
-        .catch(() => {
-            library.logger.error("[App] start error:", error);
+        .catch(err => {
+            library.logger.error(`【App start error】 ${err}`);
+            process.emit("app-close");
         });
-}
-
-main();
+})();

@@ -1,4 +1,4 @@
-const o_impl = require("./accounts_impl");
+const o_impl = require("../impl/accounts_impl");
 
 class Accounts {
     constructor() {

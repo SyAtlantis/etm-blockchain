@@ -80,7 +80,29 @@ module.exports = function (config) {
 			}
 			if (config.echo && config.levels[config.echo] <= config.levels[log.level]) {
 				try {
-					console.log(log.level.bgYellow.black, log.timestamp.grey, __file + ':' + __line, log.message, log.data ? log.data : '');
+					let type = log.level.padEnd(5, " ").bgYellow.black;
+					switch (log.level) {
+						case "trace":
+							type = log.level.padEnd(5, " ").bgGreen.black;
+							break;
+						case "debug":
+							type = log.level.padEnd(5, " ").bgMagenta.black;
+							break;
+						case "log":
+							type = log.level.padEnd(5, " ").bgBlue.black;
+							break;
+						case "info":
+							type = log.level.padEnd(5, " ").bgWhite.black;
+							break;
+						case "warn":
+							type = log.level.padEnd(5, " ").bgYellow.black;
+							break;
+						default:
+							type = log.level.padEnd(5, " ").bgRed.black;
+							break;
+					}
+
+					console.log(type, log.timestamp.grey, __file + ':' + __line, log.message, log.data ? log.data : '');
 				} catch (e) {
 					console.log(e)
 				}

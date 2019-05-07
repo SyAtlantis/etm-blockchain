@@ -4,14 +4,14 @@ class SystemImpl {
 
         setTimeout(() => {
 
-            library.logger.log("############# TODO：In loading blockchain...");
+            library.logger.trace("############# TODO：In loading blockchain...");
             cb();
 
         }, 1000);
     }
 
     static loop(cb) {
-        library.logger.log("############# TODO：looping.......");
+        library.logger.trace("############# TODO：looping.......");
         cb();
     }
 }

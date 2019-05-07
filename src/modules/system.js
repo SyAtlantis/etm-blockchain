@@ -1,4 +1,4 @@
-const o_impl = require("./system_impl");
+const o_impl = require("../impl/system_impl");
 
 class System {
     constructor() {
@@ -11,7 +11,7 @@ class System {
         o_impl.loadBlockchain(() => {
             library.logger.debug("【start】Load blockchain ok！");
 
-            library.logger.info('Send event message ========> 【onReady】');
+            library.logger.log('Send event message ========> 【onReady】');
             setImmediate(() => library.bus.message('ready'));
         });
     }

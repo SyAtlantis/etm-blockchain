@@ -3,7 +3,7 @@ class BlocksImpl {
     static processGenesisBlock(cb) {
         setTimeout(() => {
 
-            library.logger.log("############# TODO：In process genesisblock ...");
+            library.logger.trace("############# TODO：In process genesisblock ...");
             cb();
 
         }, 1000);

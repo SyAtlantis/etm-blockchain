@@ -1,4 +1,4 @@
-const o_impl = require("./blocks_impl");
+const o_impl = require("../impl/blocks_impl");
 
 class Blocks {
     constructor() {
@@ -11,7 +11,7 @@ class Blocks {
         o_impl.processGenesisBlock(() => {
             library.logger.debug("【start】Deal with genesisblock ok ！");
 
-            library.logger.info('Send event message ========> 【onLoad】');
+            library.logger.log('Send event message ========> 【onLoad】');
             setImmediate(() => library.bus.message('load'));
         });
     }
