@@ -83,19 +83,19 @@ module.exports = function (config) {
 					let type = log.level.padEnd(5, " ").bgYellow.black;
 					switch (log.level) {
 						case "trace":
-							type = log.level.padEnd(5, " ").bgGreen.black;
+							// type = log.level.padEnd(5, " ").bgGreen.black;
 							break;
 						case "debug":
-							type = log.level.padEnd(5, " ").bgMagenta.black;
+							// type = log.level.padEnd(5, " ").bgMagenta.black;
 							break;
 						case "log":
-							type = log.level.padEnd(5, " ").bgBlue.black;
+							// type = log.level.padEnd(5, " ").bgBlue.black;
 							break;
 						case "info":
-							type = log.level.padEnd(5, " ").bgWhite.black;
+							// type = log.level.padEnd(5, " ").bgWhite.black;
 							break;
 						case "warn":
-							type = log.level.padEnd(5, " ").bgYellow.black;
+							// type = log.level.padEnd(5, " ").bgYellow.black;
 							break;
 						default:
 							type = log.level.padEnd(5, " ").bgRed.black;

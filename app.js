@@ -20,8 +20,39 @@ const _modules = new Map([
     ["test", "./src/modules/test"],
 ]);
 
+// let baseDir = program.base || path.resolve('.');
+// let pidFile = path.join(baseDir, 'etm.pid');
 
 let _init = async opt => {
+    let program = opt.program;
+
+    // 配置logger
+    let logger = new Logger({
+        filename: path.resolve(__dirname, "logs", "etm.log"),
+        echo: program.deamon ? null : opt.logLevel,
+        errorLevel: opt.logLevel
+    });
+    library.logger = logger;
+
+    // 控制单个线程
+    let pidFile = path.join(__dirname, 'etm.pid');
+    if (fs.existsSync(pidFile)) {
+        library.logger.error('Failed: etm server already started.');
+        return;
+    }
+    if (program.daemon) {
+        library.logger.log('etm server started as daemon ...');
+        require('daemon')({ cwd: process.cwd() });
+        fs.writeFileSync(pidFile, process.pid, 'utf8');
+    }
+
+    // 读入genesisBlock配置文件
+    let genesisblockFile = path.resolve(__dirname, 'config', 'genesisBlock-personal.json');
+    if (program.genesisblock) {
+        genesisblockFile = path.resolve(process.cwd(), program.genesisblock);
+    }
+    let genesisblock = JSON.parse(fs.readFileSync(genesisblockFile, 'utf8'));
+    library.genesisblock = genesisblock;
 
 };
 
@@ -73,15 +104,16 @@ let _setup = async opt => {
 
     async.auto({
         logger: (cb) => {
-            let logger = new Logger({
-                filename: path.resolve(__dirname, "logs", "etm.log"),
-                echo: program.deamon ? null : "trace",
-                errorLevel: "trace"
-            });
-            library.logger = logger; // 绑定到全局
-            library.logger.info(`【App setup logger】 logger is ok.`);
+            // let logger = new Logger({
+            //     filename: path.resolve(__dirname, "logs", "etm.log"),
+            //     echo: program.deamon ? null : "trace",
+            //     errorLevel: "trace"
+            // });
+            // library.logger = logger; // 绑定到全局
+            // library.logger.info(`【App setup logger】 logger is ok.`);
 
-            cb(null, logger);
+            // cb(null, logger);
+            cb();
         },
         db: ["logger", (res, cb) => {
             let db = new DBMgr();
@@ -174,6 +206,9 @@ let _setup = async opt => {
     let opt = {};
     opt.host = program.host;
     opt.port = Number(program.port);
+
+    opt.logLevel = "trace";
+    opt.program = program;
 
     _init(opt)
         .then(() => {
