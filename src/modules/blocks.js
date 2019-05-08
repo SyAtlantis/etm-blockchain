@@ -23,6 +23,10 @@ class Blocks {
     async getBlocks(filter, ...restArgs) {
         return [1, 2, 3];
     }
+
+    async saveBlock(block) {
+        // return {}
+    }
 }
 
 module.exports = Blocks;

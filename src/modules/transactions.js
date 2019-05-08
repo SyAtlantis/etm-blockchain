@@ -4,6 +4,10 @@ class Transactions {
     constructor() {
 
     }
+
+    async saveTransactions(trs) {
+
+    }
 }
 
 module.exports = Transactions;
